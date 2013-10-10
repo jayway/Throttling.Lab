@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.ApplicationServer.Caching;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Jayway.Throttling
 {
     public class AzureCacheThrottlingService : IThrottlingService
     {
-        private readonly DataCache _dataCache;
+        private readonly CloudTable _table;
 
-        public AzureCacheThrottlingService(DataCache dataCache)
+        public AzureCacheThrottlingService(CloudTable table)
         {
-            _dataCache = dataCache;
+            _table = table;
         }
 
         public async Task<bool> Allow(string account, long cost, Func<Interval> intervalFactory)
         {
             var interval = intervalFactory();
-            var result = await _dataCache.DecrementWithTimeout(account, cost,interval.Credits, TimeSpan.FromSeconds(interval.Seconds));
+            var result = await _table.DecrementWithTimeout(account, cost,interval.Credits, TimeSpan.FromSeconds(interval.Seconds));
 
             return result > 0;
         }

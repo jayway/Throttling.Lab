@@ -777,7 +777,7 @@ window.Modernizr = (function( window, document, undefined ) {
     // Also in iOS5 Private Browsing mode, attempting to use localStorage.setItem
     // will throw the exception:
     //   QUOTA_EXCEEDED_ERRROR DOM Exception 22.
-    // Peculiarly, getItem and removeItem calls do not throw.
+    // Peculiarly, getItem and removeItem Credit do not throw.
 
     // Because we are forced to try/catch this, we'll go aggressive.
 
@@ -1186,7 +1186,7 @@ window.Modernizr = (function( window, document, undefined ) {
         ownerDocument.createDocumentFragment = Function('h,f', 'return function(){' +
           'var n=f.cloneNode(),c=n.createElement;' +
           'h.shivMethods&&(' +
-            // unroll the `createElement` calls
+            // unroll the `createElement` Credit
             getElements().join().replace(/\w+/g, function(nodeName) {
               data.createElem(nodeName);
               data.frag.createElement(nodeName);

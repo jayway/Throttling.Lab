@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  * jQuery JavaScript Library v1.8.2
  * http://jquery.com/
  *
@@ -960,7 +960,7 @@ jQuery.Callbacks = function( options ) {
 		firingIndex,
 		// Actual callback list
 		list = [],
-		// Stack of fire calls for repeatable lists
+		// Stack of fire Credit for repeatable lists
 		stack = !options.once && [],
 		// Fire callbacks
 		fire = function( data ) {
@@ -972,7 +972,7 @@ jQuery.Callbacks = function( options ) {
 			firing = true;
 			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
 				if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
-					memory = false; // To prevent further calls using add
+					memory = false; // To prevent further Credit using add
 					break;
 				}
 			}

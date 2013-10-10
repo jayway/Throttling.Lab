@@ -1,30 +1,42 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.ApplicationServer.Caching;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Jayway.Throttling
 {
+    public class BlajEntity : TableEntity
+    {
+        public long Credit { get; set; }
+        public long Calls { get; set; }
+        public DateTime Expires { get; set; }
+    }
+
     public static class DataCacheExtensions
     {
         public static TimeSpan Get;
         public static TimeSpan Add;
         public static TimeSpan Put;
 
-        public static async Task<long> DecrementWithTimeout(this DataCache dataCache, string key, long amount, long initialValue,
+        public static async Task<long> DecrementWithTimeout(this CloudTable table, string key, long amount, long initialValue,
                                                 TimeSpan timeOut)
         {
-            return await Task.Run(() =>
-            {
                 var get = Stopwatch.StartNew();
-                var item = dataCache.GetCacheItem(key);
+                var item = await table.ExecuteAsync(TableOperation.Retrieve<BlajEntity>("partion", key));
                 get.Stop();
                 Get = Get.Add(get.Elapsed);
                 var s = Stopwatch.StartNew();
                 if (item == null)
                 {
                     var add = Stopwatch.StartNew();
-                    dataCache.Put(key, initialValue - amount, timeOut);
+                    var te = new BlajEntity();
+                    te.PartitionKey = "partion";
+                    te.RowKey = key;
+                    te.Credit = initialValue;
+                    te.Expires = DateTime.Now.Add(timeOut);
+                    await table.ExecuteAsync(TableOperation.InsertOrReplace(te));
                     add.Stop();
                     Add = Add.Add(add.Elapsed);
                     Debug.WriteLine("\"{0}\" expires in {1}", key, timeOut);
@@ -32,18 +44,20 @@ namespace Jayway.Throttling
                 }
                 else
                 {
-                    var value = (long)item.Value;
-                    if (value <= 0) return 0;
-                    var newValue = Math.Max(value - amount, 0);
-                    Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
+                    var blaj = item.Result as BlajEntity;
+                    if (blaj.Expires > DateTime.Now) return 0;
+
+                    if (blaj.Calls++ >= blaj.Credit) return 0;
+
+                    //Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
                     var put = Stopwatch.StartNew();
-                    dataCache.Decrement(key, newValue, initialValue);
-                    dataCache.ResetObjectTimeout(key,item.Timeout);
+
+                    await table.ExecuteAsync(TableOperation.Replace(blaj));
+
                     put.Stop();
                     Put = Put.Add(put.Elapsed);
-                    return newValue;
+                    return blaj.Calls;
                 }
-            });
         }
 
         public static void Clear()

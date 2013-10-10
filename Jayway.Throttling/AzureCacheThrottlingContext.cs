@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using Microsoft.ApplicationServer.Caching;
+using Microsoft.WindowsAzure.Storage;
 
 namespace Jayway.Throttling
 {
@@ -7,8 +8,12 @@ namespace Jayway.Throttling
     {
         public IThrottlingService GetThrottlingService()
         {
-            var cache = new DataCache(); 
-            return new AzureCacheThrottlingService(cache);
+            var account = CloudStorageAccount.Parse("DefaultEndpointsProtocol=http;AccountName=jakobnekdag;AccountKey=1DZD2wHiDfulTee9R4l+cpnavuOuUe/6MJ1Yi022baQBnyQfJQnjM5VWHw1mQHgY6n4g+R7Tq21rSeiJwylGKA==");
+            var client = account.CreateCloudTableClient();
+            var table = client.GetTableReference("blaj");
+            table.CreateIfNotExists();
+
+            return new AzureCacheThrottlingService(table);
         }
 
         public void Close()
