@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.ApplicationServer.Caching;
 
 namespace Jayway.Throttling
@@ -12,10 +13,10 @@ namespace Jayway.Throttling
             _dataCache = dataCache;
         }
 
-        public bool Allow(string account, long cost, Func<Interval> intervalFactory)
+        public async Task<bool> Allow(string account, long cost, Func<Interval> intervalFactory)
         {
             var interval = intervalFactory();
-            var result = _dataCache.DecrementWithTimeout(account, cost,interval.Credits, TimeSpan.FromSeconds(interval.Seconds));
+            var result = await _dataCache.DecrementWithTimeout(account, cost,interval.Credits, TimeSpan.FromSeconds(interval.Seconds));
 
             return result > 0;
         }

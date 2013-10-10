@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 
@@ -31,36 +32,44 @@ namespace Jayway.Throttling.Web.Controllers
         }
         
         [HttpPost("accounts/{account}/demo")]
-        public HttpResponseMessage Demo(string account)
+        public async Task<HttpResponseMessage> Demo(string account)
         {
-            bool allow = _throttlingService.Allow(account, 1, () => new Interval(60,10));
+            DataCacheExtensions.Clear();
+            bool allow = await _throttlingService.Allow(account, 1, () => new Interval(60,10));
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
         [HttpPost("single/{account}")]
-        public HttpResponseMessage Single(string account, TestModel model)
+        public async Task<HttpResponseMessage> Single(string account, TestModel model)
         {
-            bool allow = new ThrottledRequest(_throttlingService, model.Cost, model.IntervalInSeconds, model.CreditsPerIntervalValue).Perform(account);
+            DataCacheExtensions.Clear();
+            bool allow = await new ThrottledRequest(_throttlingService, model.Cost, model.IntervalInSeconds, model.CreditsPerIntervalValue).Perform(account);
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
         [HttpPost("multi/{account}")]
-        public dynamic Multi(string account, TestModel model)
+        public async Task<dynamic> Multi(string account, TestModel model)
         {
+            DataCacheExtensions.Clear();
+
             var r = new ThrottledRequest(_throttlingService, model.Cost, model.IntervalInSeconds, model.CreditsPerIntervalValue);
             var throttledCount = 0;
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
             for (var indx = 0; indx < model.Calls; indx++)
             {
                 var randomAccount = "a" + new Random().Next(model.Accounts);
-                if (!r.Perform(randomAccount))
+                if (!await r.Perform(randomAccount))
                 {
                     throttledCount++;
                 }
             }
             sw.Stop();
-            return new {model.Calls, sw.ElapsedMilliseconds, throttledCount};
+
+            Debug.WriteLine("Get: {0}", DataCacheExtensions.Get);
+            Debug.WriteLine("Add: {0}", DataCacheExtensions.Add);
+            Debug.WriteLine("Put: {0}", DataCacheExtensions.Put);
+
+            return new {model.Calls, sw.ElapsedMilliseconds, throttledCount, DataCacheExtensions.Get, DataCacheExtensions.Add, DataCacheExtensions.Put};
         }
     }
 
@@ -78,8 +87,8 @@ namespace Jayway.Throttling.Web.Controllers
             this._newInterval = () => new Interval(intervalInSeconds, creditsPerIntervalValue);
         }
 
-        public bool Perform(String account) {
-            return _throttlingService.Allow(account, _cost, _newInterval);
+        public async Task<bool> Perform(String account) {
+            return await _throttlingService.Allow(account, _cost, _newInterval);
         }
     }
 
