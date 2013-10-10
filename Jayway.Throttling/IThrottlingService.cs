@@ -15,6 +15,6 @@ namespace Jayway.Throttling
         /// therefore we should not do this on every request.</param>
         /// <returns>true if the request should be allowed, false if the account
         /// should be throttled</returns>
-        Task<bool> Allow(string account, long cost, Func<Interval> intervalFactory);
+        bool Allow(string account, long cost, Func<Interval> intervalFactory);
     }
 }

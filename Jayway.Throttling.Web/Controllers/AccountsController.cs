@@ -32,18 +32,18 @@ namespace Jayway.Throttling.Web.Controllers
         }
         
         [HttpPost("accounts/{account}/demo")]
-        public async Task<HttpResponseMessage> Demo(string account)
+        public HttpResponseMessage Demo(string account)
         {
             DataCacheExtensions.Clear();
-            bool allow = await _throttlingService.Allow(account, 1, () => new Interval(60,10));
+            bool allow = _throttlingService.Allow(account, 1, () => new Interval(60,10));
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
         [HttpPost("single/{account}")]
-        public async Task<HttpResponseMessage> Single(string account, TestModel model)
+        public HttpResponseMessage Single(string account, TestModel model)
         {
             DataCacheExtensions.Clear();
-            bool allow = await new ThrottledRequest(_throttlingService, model.Cost, model.IntervalInSeconds, model.CreditsPerIntervalValue).Perform(account);
+            bool allow = new ThrottledRequest(_throttlingService, model.Cost, model.IntervalInSeconds, model.CreditsPerIntervalValue).Perform(account);
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
@@ -58,7 +58,7 @@ namespace Jayway.Throttling.Web.Controllers
             for (var indx = 0; indx < model.Calls; indx++)
             {
                 var randomAccount = "a" + new Random().Next(model.Accounts);
-                if (!await r.Perform(randomAccount))
+                if (!r.Perform(randomAccount))
                 {
                     throttledCount++;
                 }
@@ -87,8 +87,8 @@ namespace Jayway.Throttling.Web.Controllers
             this._newInterval = () => new Interval(intervalInSeconds, creditsPerIntervalValue);
         }
 
-        public async Task<bool> Perform(String account) {
-            return await _throttlingService.Allow(account, _cost, _newInterval);
+        public bool Perform(String account) {
+            return _throttlingService.Allow(account, _cost, _newInterval);
         }
     }
 

@@ -13,10 +13,10 @@ namespace Jayway.Throttling
             _dataCache = dataCache;
         }
 
-        public async Task<bool> Allow(string account, long cost, Func<Interval> intervalFactory)
+        public bool  Allow(string account, long cost, Func<Interval> intervalFactory)
         {
             var interval = intervalFactory();
-            var result = await _dataCache.DecrementWithTimeout(account, cost,interval.Credits, TimeSpan.FromSeconds(interval.Seconds));
+            var result = _dataCache.Decrement(account, cost,interval.Credits, TimeSpan.FromSeconds(interval.Seconds));
 
             return result > 0;
         }

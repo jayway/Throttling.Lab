@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Microsoft.ApplicationServer.Caching;
+using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using Microsoft.ApplicationServer.Caching;
 
 namespace Jayway.Throttling
 {
@@ -11,40 +10,38 @@ namespace Jayway.Throttling
         public static TimeSpan Add;
         public static TimeSpan Put;
 
-        public static async Task<long> DecrementWithTimeout(this DataCache dataCache, string key, long amount, long initialValue,
+        public static long Decrement(this DataCache dataCache, string key, long amount, long initialValue,
                                                 TimeSpan timeOut)
         {
-            return await Task.Run(() =>
+            var get = Stopwatch.StartNew();
+            var item = dataCache.GetCacheItem(key);
+            get.Stop();
+            Get = Get.Add(get.Elapsed);
+            //var s = Stopwatch.StartNew();
+            if (item == null)
             {
-                var get = Stopwatch.StartNew();
-                var item = dataCache.GetCacheItem(key);
-                get.Stop();
-                Get = Get.Add(get.Elapsed);
-                //var s = Stopwatch.StartNew();
-                if (item == null)
-                {
-                    var add = Stopwatch.StartNew();
-                    dataCache.Put(key, initialValue - amount, timeOut);
-                    add.Stop();
-                    Add = Add.Add(add.Elapsed);
-                    //Debug.WriteLine("\"{0}\" expires in {1}", key, timeOut);
-                    return initialValue - amount;
-                }
-                else
-                {
-                    var value = (long)item.Value;
-                    if (value <= 0) return 0;
-                    
-                    //Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
-                    var put = Stopwatch.StartNew();
-                    var result = dataCache.Decrement(key, value, initialValue);
-                    dataCache.ResetObjectTimeout(key, item.Timeout);
-                    var newValue = Math.Max(result, 0);
-                    put.Stop();
-                    Put = Put.Add(put.Elapsed);
-                    return newValue;
-                }
-            });
+                var add = Stopwatch.StartNew();
+                dataCache.Put(key, initialValue - amount, timeOut);
+                add.Stop();
+                Add = Add.Add(add.Elapsed);
+                //Debug.WriteLine("\"{0}\" expires in {1}", key, timeOut);
+                return initialValue - amount;
+            }
+            else
+            {
+                var value = (long)item.Value;
+                if (value <= 0) return 0;
+
+                //Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
+                var put = Stopwatch.StartNew();
+                var result = dataCache.Decrement(key, value, initialValue);
+                dataCache.ResetObjectTimeout(key, item.Timeout);
+                var newValue = Math.Max(result, 0);
+                put.Stop();
+                Put = Put.Add(put.Elapsed);
+                return newValue;
+            }
+
         }
 
         public static void Clear()
