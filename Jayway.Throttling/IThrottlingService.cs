@@ -16,4 +16,12 @@ namespace Jayway.Throttling
         /// should be throttled</returns>
         bool Allow(string account, long cost, Func<Interval> intervalFactory);
     }
+
+	public class AllowAllThrottlingService : IThrottlingService
+	{
+		public bool Allow(string account, long cost, Func<Interval> intervalFactory)
+		{
+			return true;
+		}
+	}
 }

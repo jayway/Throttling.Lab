@@ -12,7 +12,7 @@ namespace Jayway.Throttling.Web.Controllers
     {
         private readonly IThrottlingService _throttlingService;
 
-        public AccountsController() : this(new AzureCacheThrottlingContext())
+        public AccountsController() : this(new AllowAllThrottlingContext() )
         {}
 
         public AccountsController(IThrottlingContext throttlingContext)
@@ -34,16 +34,16 @@ namespace Jayway.Throttling.Web.Controllers
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
-        [HttpPost("multi/{account}")]
-        public dynamic Multi(string account, int calls, int accounts, int cost, int intervalInSeconds, long creditsPerIntervalValue)
+        [HttpPost("multi")]
+        public dynamic Multi(TestModel model)
         {
-            var r = new ThrottledRequest(_throttlingService, cost, intervalInSeconds, creditsPerIntervalValue);
+			var r = new ThrottledRequest(_throttlingService, model.Cost, model.IntervalInSeconds, model.CreditsPerIntervalValue);
             var throttledCount = 0;
             long startTime = DateTime.Now.Millisecond; //System.currentTimeMillis();
-            for (int i = 0; i < accounts; i++)
+            for (int i = 0; i < model.Accounts; i++)
             {
-                var randomAccount = "a" + new Random().Next() * accounts;
-                for (var indx = 0; indx < calls; indx++)
+                var randomAccount = "a" + new Random().Next() * model.Accounts;
+                for (var indx = 0; indx < model.Calls; indx++)
                 {
                     if (!r.Perform(randomAccount))
                     {
@@ -53,8 +53,17 @@ namespace Jayway.Throttling.Web.Controllers
                 
             }
             var time = DateTime.Now.Millisecond - startTime;
-            return new {calls, time, throttledCount};
+            return new {model.Calls, time, throttledCount};
         }
+
+		public class TestModel
+		{
+			public int Calls { get; set; }
+			public int Accounts { get; set; }
+			public int Cost { get; set; }
+			public int IntervalInSeconds { get; set; }
+			public long CreditsPerIntervalValue { get; set; }
+		}
     }
 
 
