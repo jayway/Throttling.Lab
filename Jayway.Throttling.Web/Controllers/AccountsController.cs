@@ -47,8 +47,8 @@ namespace Jayway.Throttling.Web.Controllers
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
-        [HttpPost("multi/{account}")]
-        public async Task<dynamic> Multi(string account, TestModel model)
+        [HttpPost("multi")]
+        public async Task<dynamic> Multi(TestModel model)
         {
             DataCacheExtensions.Clear();
 
@@ -69,7 +69,7 @@ namespace Jayway.Throttling.Web.Controllers
             Debug.WriteLine("Add: {0}", DataCacheExtensions.Add);
             Debug.WriteLine("Put: {0}", DataCacheExtensions.Put);
 
-            return new {model.Calls, sw.ElapsedMilliseconds, throttledCount, DataCacheExtensions.Get, DataCacheExtensions.Add, DataCacheExtensions.Put};
+            return new {model.Calls, sw, throttledCount, DataCacheExtensions.Get, DataCacheExtensions.Add, DataCacheExtensions.Put};
         }
     }
 
