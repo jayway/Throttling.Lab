@@ -15,7 +15,7 @@ namespace Jayway.Throttling
         public bool Allow(string account, long cost, Func<Interval> intervalFactory)
         {
             var interval = intervalFactory();
-            var result = _dataCache.Decrement(account, cost, interval.Credits - cost);
+            var result = _dataCache.DecrementWithTimeout(account, cost,interval.Credits, TimeSpan.FromSeconds(interval.Seconds));
 
             return result > 0;
         }

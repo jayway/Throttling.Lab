@@ -27,14 +27,14 @@ namespace Jayway.Throttling.Web.Controllers
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
-        [HttpPost("single/{account}")]
+        [HttpPost("accounts/single/{account}/{cost}/{intervalInSeconds}/{creditsPerIntervalValue}")]
         public HttpResponseMessage Single(string account, int cost, int intervalInSeconds, long creditsPerIntervalValue)
         {
             bool allow = new ThrottledRequest(_throttlingService, cost, intervalInSeconds, creditsPerIntervalValue).Perform(account);
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
-        [HttpPost("multi/{account}")]
+        [HttpPost("accounts/multi")]
         public dynamic Multi(string account, int calls, int accounts, int cost, int intervalInSeconds, long creditsPerIntervalValue)
         {
             var r = new ThrottledRequest(_throttlingService, cost, intervalInSeconds, creditsPerIntervalValue);

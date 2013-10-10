@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="AzureCacheThrottlingService.cs" />
     <Compile Include="AzureCacheThrottlingContext.cs" />
+    <Compile Include="DataCacheExtensions.cs" />
     <Compile Include="Interval.cs" />
     <Compile Include="IThrottlingService.cs" />
     <Compile Include="IThrottlingContext.cs" />
