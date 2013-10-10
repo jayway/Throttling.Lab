@@ -48,7 +48,7 @@ namespace Jayway.Throttling.Web.Controllers
         }
 
         [HttpPost("multi")]
-        public async Task<dynamic> Multi(TestModel model)
+        public dynamic Multi(TestModel model)
         {
             DataCacheExtensions.Clear();
 
