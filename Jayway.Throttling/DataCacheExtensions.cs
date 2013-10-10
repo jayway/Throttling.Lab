@@ -37,7 +37,8 @@ namespace Jayway.Throttling
                     var newValue = Math.Max(value - amount, 0);
                     Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
                     var put = Stopwatch.StartNew();
-                    dataCache.Put(key, newValue, item.Timeout - s.Elapsed);
+                    dataCache.Decrement(key, newValue, initialValue);
+                    dataCache.ResetObjectTimeout(key,item.Timeout);
                     put.Stop();
                     Put = Put.Add(put.Elapsed);
                     return newValue;
