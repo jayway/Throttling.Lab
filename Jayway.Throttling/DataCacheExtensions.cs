@@ -20,25 +20,26 @@ namespace Jayway.Throttling
                 var item = dataCache.GetCacheItem(key);
                 get.Stop();
                 Get = Get.Add(get.Elapsed);
-                var s = Stopwatch.StartNew();
+                //var s = Stopwatch.StartNew();
                 if (item == null)
                 {
                     var add = Stopwatch.StartNew();
                     dataCache.Put(key, initialValue - amount, timeOut);
                     add.Stop();
                     Add = Add.Add(add.Elapsed);
-                    Debug.WriteLine("\"{0}\" expires in {1}", key, timeOut);
+                    //Debug.WriteLine("\"{0}\" expires in {1}", key, timeOut);
                     return initialValue - amount;
                 }
                 else
                 {
                     var value = (long)item.Value;
                     if (value <= 0) return 0;
-                    var newValue = Math.Max(value - amount, 0);
-                    Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
+                    
+                    //Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
                     var put = Stopwatch.StartNew();
-                    dataCache.Decrement(key, newValue, initialValue);
-                    dataCache.ResetObjectTimeout(key,item.Timeout);
+                    var result = dataCache.Decrement(key, value, initialValue);
+                    dataCache.ResetObjectTimeout(key, item.Timeout);
+                    var newValue = Math.Max(result, 0);
                     put.Stop();
                     Put = Put.Add(put.Elapsed);
                     return newValue;
