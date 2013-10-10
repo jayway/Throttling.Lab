@@ -44,23 +44,40 @@ namespace Jayway.Throttling.Web.Controllers
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
+<<<<<<< Updated upstream
+        [HttpPost("accounts/multi/{account}/{calls}/{accounts}/{cost}/{intervalInSeconds}/{creditsPerIntervalValue}")]
+        public dynamic Multi(string account, int calls, int accounts, int cost, int intervalInSeconds, long creditsPerIntervalValue)
+=======
         [HttpPost("multi/{account}")]
         public dynamic Multi(string account, TestModel model)
+>>>>>>> Stashed changes
         {
             var r = new ThrottledRequest(_throttlingService, model.Cost, model.IntervalInSeconds, model.CreditsPerIntervalValue);
             var throttledCount = 0;
+<<<<<<< Updated upstream
+            var s = Stopwatch.StartNew();
+            for (var indx = 0; indx < calls; indx++)
+            {
+                var randomAccount = "a" + new Random().Next(accounts);
+=======
             var sw = new Stopwatch();
             sw.Start();
             for (var indx = 0; indx < model.Calls; indx++)
             {
                 var randomAccount = "a" + new Random().Next(model.Accounts);
+>>>>>>> Stashed changes
                 if (!r.Perform(randomAccount))
                 {
                     throttledCount++;
                 }
             }
+<<<<<<< Updated upstream
+            var time = s.Elapsed;
+            return new {calls, time, throttledCount};
+=======
             sw.Stop();
             return new {model.Calls, sw.ElapsedMilliseconds, throttledCount};
+>>>>>>> Stashed changes
         }
     }
 

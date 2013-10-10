@@ -7,6 +7,10 @@ namespace Jayway.Throttling
     {
         public IThrottlingService GetThrottlingService()
         {
+<<<<<<< Updated upstream
+            //throw new ConfigurationErrorsException("Configure Cache Service!");
+=======
+>>>>>>> Stashed changes
             var cache = new DataCache(); 
             return new AzureCacheThrottlingService(cache);
         }
