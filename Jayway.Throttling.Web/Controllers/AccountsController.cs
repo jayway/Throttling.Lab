@@ -40,13 +40,17 @@ namespace Jayway.Throttling.Web.Controllers
             var r = new ThrottledRequest(_throttlingService, cost, intervalInSeconds, creditsPerIntervalValue);
             var throttledCount = 0;
             long startTime = DateTime.Now.Millisecond; //System.currentTimeMillis();
-            for (var indx = 0; indx < calls; indx++)
+            for (int i = 0; i < accounts; i++)
             {
                 var randomAccount = "a" + new Random().Next() * accounts;
-                if (!r.Perform(randomAccount))
+                for (var indx = 0; indx < calls; indx++)
                 {
-                    throttledCount++;
+                    if (!r.Perform(randomAccount))
+                    {
+                        throttledCount++;
+                    }
                 }
+                
             }
             var time = DateTime.Now.Millisecond - startTime;
             return new {calls, time, throttledCount};
