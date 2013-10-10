@@ -10,8 +10,7 @@ namespace Jayway.Throttling
                                                 TimeSpan timeOut)
         {
             var item = dataCache.GetCacheItem(key);
-            var s = new Stopwatch();
-            s.Start();
+            var s = Stopwatch.StartNew();
             if (item == null)
             {
                 dataCache.Add(key, initialValue - amount, timeOut);

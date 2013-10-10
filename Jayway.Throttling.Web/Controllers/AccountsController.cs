@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -34,21 +35,21 @@ namespace Jayway.Throttling.Web.Controllers
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }
 
-        [HttpPost("accounts/multi")]
+        [HttpPost("accounts/multi/{account}/{calls}/{accounts}/{cost}/{intervalInSeconds}/{creditsPerIntervalValue}")]
         public dynamic Multi(string account, int calls, int accounts, int cost, int intervalInSeconds, long creditsPerIntervalValue)
         {
             var r = new ThrottledRequest(_throttlingService, cost, intervalInSeconds, creditsPerIntervalValue);
             var throttledCount = 0;
-            long startTime = DateTime.Now.Millisecond; //System.currentTimeMillis();
+            var s = Stopwatch.StartNew();
             for (var indx = 0; indx < calls; indx++)
             {
-                var randomAccount = "a" + new Random().Next() * accounts;
+                var randomAccount = "a" + new Random().Next(accounts);
                 if (!r.Perform(randomAccount))
                 {
                     throttledCount++;
                 }
             }
-            var time = DateTime.Now.Millisecond - startTime;
+            var time = s.Elapsed;
             return new {calls, time, throttledCount};
         }
     }
