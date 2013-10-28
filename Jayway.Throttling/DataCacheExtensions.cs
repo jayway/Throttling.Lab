@@ -37,7 +37,6 @@ namespace Jayway.Throttling
             var blaj = item.Result as BlajEntity;
             if (blaj != null && blaj.Expires > DateTime.Now)
             {
-                await table.ExecuteAsync(TableOperation.Delete(blaj));
                 return await Create(table, key, amount, initialValue, timeOut);
             }
 
