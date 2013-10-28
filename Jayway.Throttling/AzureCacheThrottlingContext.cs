@@ -11,6 +11,7 @@ namespace Jayway.Throttling
         {
             var account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
             var client = account.CreateCloudTableClient();
+            
             var table = client.GetTableReference("blaj");
             table.CreateIfNotExists();
 

@@ -34,7 +34,6 @@ namespace Jayway.Throttling.Web.Controllers
         [HttpPost("accounts/{account}/demo")]
         public async Task<HttpResponseMessage> Demo(string account)
         {
-            DataCacheExtensions.Clear();
             bool allow = await _throttlingService.Allow(account, 1, () => new Interval(60,10));
             return allow ? Request.CreateResponse(HttpStatusCode.OK) : Request.CreateResponse(HttpStatusCode.PaymentRequired, "THROTTLED");
         }

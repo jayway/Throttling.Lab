@@ -24,11 +24,12 @@ namespace Jayway.Throttling
                                                 TimeSpan timeOut)
         {
                 var get = Stopwatch.StartNew();
-                var item = await table.ExecuteAsync(TableOperation.Retrieve<BlajEntity>("partion", key));
-                get.Stop();
+            TableResult item;
+                     item = await table.ExecuteAsync(TableOperation.Retrieve<BlajEntity>("partion", key));
+            get.Stop();
                 Get = Get.Add(get.Elapsed);
                 var s = Stopwatch.StartNew();
-                if (item == null)
+                if (item.Result == null)
                 {
                     var add = Stopwatch.StartNew();
                     var te = new BlajEntity();
