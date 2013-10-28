@@ -31,34 +31,41 @@ namespace Jayway.Throttling
                 var s = Stopwatch.StartNew();
                 if (item.Result == null)
                 {
-                    var add = Stopwatch.StartNew();
-                    var te = new BlajEntity();
-                    te.PartitionKey = "partion";
-                    te.RowKey = key;
-                    te.Credit = initialValue;
-                    te.Expires = DateTime.Now.Add(timeOut);
-                    await table.ExecuteAsync(TableOperation.InsertOrReplace(te));
-                    add.Stop();
-                    Add = Add.Add(add.Elapsed);
-                    Debug.WriteLine("\"{0}\" expires in {1}", key, timeOut);
-                    return initialValue - amount;
+                    return await Create(table, key, amount, initialValue, timeOut);
                 }
-                else
-                {
-                    var blaj = item.Result as BlajEntity;
-                    if (blaj.Expires > DateTime.Now) return 0;
+            
+            var blaj = item.Result as BlajEntity;
+            if (blaj != null && blaj.Expires > DateTime.Now)
+            {
+                await table.ExecuteAsync(TableOperation.Delete(blaj));
+                return await Create(table, key, amount, initialValue, timeOut);
+            }
 
-                    if (blaj.Calls++ >= blaj.Credit) return 0;
+            if (blaj.Calls++ >= blaj.Credit) return 0;
 
-                    //Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
-                    var put = Stopwatch.StartNew();
+            //Debug.WriteLine("\"{0}\" expires in {1}", key, item.Timeout - s.Elapsed);
+            var put = Stopwatch.StartNew();
 
-                    await table.ExecuteAsync(TableOperation.Replace(blaj));
+            await table.ExecuteAsync(TableOperation.Replace(blaj));
 
-                    put.Stop();
-                    Put = Put.Add(put.Elapsed);
-                    return blaj.Calls;
-                }
+            put.Stop();
+            Put = Put.Add(put.Elapsed);
+            return blaj.Calls;
+        }
+
+        private static async Task<long> Create(CloudTable table, string key, long amount, long initialValue, TimeSpan timeOut)
+        {
+            var add = Stopwatch.StartNew();
+            var te = new BlajEntity();
+            te.PartitionKey = "partion";
+            te.RowKey = key;
+            te.Credit = initialValue;
+            te.Expires = DateTime.Now.Add(timeOut);
+            await table.ExecuteAsync(TableOperation.InsertOrReplace(te));
+            add.Stop();
+            Add = Add.Add(add.Elapsed);
+            Debug.WriteLine("\"{0}\" expires in {1}", key, timeOut);
+            return initialValue - amount;
         }
 
         public static void Clear()
